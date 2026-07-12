@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agua Transparente</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#eef1f5;color:#1a1a1a;font-size:14px;}
+.hidden{display:none !important;}
+
+/* ---------- SPLASH ---------- */
+#screen-splash{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#eef1f5;}
+.splash-card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,0.06);padding:40px 36px;width:380px;max-width:90%;text-align:center;}
+.splash-drop{font-size:42px;color:#1565ef;margin-bottom:8px;}
+.splash-title{font-size:20px;font-weight:800;letter-spacing:0.02em;margin-bottom:6px;}
+.splash-sub{color:#777;font-size:13px;margin-bottom:24px;}
+
+/* ---------- LOGIN ---------- */
+#screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#eef1f5;}
+.login-card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,0.06);padding:36px 36px 30px;width:420px;max-width:90%;}
+.login-title{font-size:20px;font-weight:800;text-align:center;margin-bottom:24px;}
+.field-label{font-size:13px;font-weight:700;margin-bottom:6px;display:block;}
+.field-input{width:100%;padding:11px 12px;border:1px solid #e1e4ea;border-radius:8px;background:#fafbfc;font-size:13px;margin-bottom:16px;font-family:inherit;}
+.field-input:focus{outline:none;border-color:#1565ef;background:#fff;}
+.login-forgot{display:block;text-align:right;font-size:12px;color:#1565ef;text-decoration:none;margin:-6px 0 18px;}
+.login-error{background:#fdecec;color:#b3261e;font-size:12px;border-radius:8px;padding:8px 10px;margin-bottom:14px;display:none;}
+
+/* ---------- BUTTONS ---------- */
+.btn-solid{display:block;width:100%;background:#1565ef;color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;letter-spacing:0.03em;cursor:pointer;}
+.btn-solid:hover{background:#0f52c4;}
+.btn-solid.green{background:#1c9b53;}
+.btn-solid.green:hover{background:#157e42;}
+.btn-outline{display:block;width:100%;background:#fff;color:#1a1a1a;border:1px solid #e1e4ea;border-radius:10px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-outline:hover{background:#f5f6f8;}
+.btn-row{display:flex;gap:10px;}
+.btn-row .btn-solid,.btn-row .btn-outline{flex:1;}
+.btn-sm{border:1px solid #e1e4ea;background:#fff;border-radius:7px;padding:6px 12px;font-size:12px;cursor:pointer;color:#1a1a1a;}
+.btn-sm:hover{background:#f5f6f8;}
+.btn-link{background:none;border:none;color:#1565ef;font-size:12px;cursor:pointer;text-decoration:underline;}
+
+/* ---------- APP SHELL ---------- */
+#app-shell{display:flex;min-height:100vh;}
+.sidebar{width:230px;background:#0b1f3a;color:#cfd8e8;flex-shrink:0;display:flex;flex-direction:column;padding:22px 0;}
+.sidebar-brand{font-weight:800;font-size:16px;color:#fff;letter-spacing:0.03em;padding:0 22px 22px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:10px;}
+.nav-item{padding:11px 22px;font-size:13.5px;cursor:pointer;color:#aab4c8;border-left:3px solid transparent;}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,0.04);}
+.nav-item.active{color:#fff;font-weight:700;background:rgba(21,101,239,0.18);border-left-color:#1565ef;}
+.nav-spacer{flex:1;}
+.main-area{flex:1;background:#eef1f5;display:flex;align-items:flex-start;justify-content:center;padding:40px 24px;overflow-y:auto;}
+.main-area.full{align-items:stretch;justify-content:stretch;padding:0;}
+
+/* ---------- PAGE WRAP (form-style pages) ---------- */
+.page{display:none;width:100%;}
+.page.active{display:block;}
+.form-card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,0.06);padding:30px 32px;width:420px;max-width:100%;margin:0 auto;}
+.form-card-title{font-size:19px;font-weight:800;text-align:center;margin-bottom:22px;}
+
+/* ---------- DASHBOARD / WIDE PAGES ---------- */
+.wide-page{padding:30px 36px;max-width:1100px;margin:0 auto;width:100%;}
+.page-title{font-size:20px;font-weight:800;margin-bottom:3px;}
+.page-sub{color:#777;font-size:13px;margin-bottom:22px;}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px;}
+.metric{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.metric-label{font-size:11.5px;color:#999;margin-bottom:5px;}
+.metric-value{font-size:23px;font-weight:800;}
+.metric-value.blue{color:#1565ef;}
+.metric-value.green{color:#1c9b53;}
+.metric-value.red{color:#d8473f;}
+.card{background:#fff;border-radius:12px;padding:18px 20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.card-title{font-weight:800;font-size:14.5px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;color:#999;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;padding:0 10px 9px;border-bottom:1px solid #eef0f3;}
+td{padding:10px;border-bottom:1px solid #f3f4f6;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+.status{display:inline-block;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;}
+.status.pagado{background:#e3f7ea;color:#1c9b53;}
+.status.pendiente{background:#fef3da;color:#a06b0a;}
+.status.moroso{background:#fde6e5;color:#d8473f;}
+.avatar{width:30px;height:30px;border-radius:50%;background:#e3edfd;color:#1565ef;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.user-cell{display:flex;align-items:center;gap:9px;}
+.search-bar{display:flex;gap:10px;margin-bottom:16px;}
+.search-bar input{max-width:260px;}
+.row-actions{display:flex;gap:6px;}
+.pill-row{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+.pill{padding:5px 13px;border-radius:99px;font-size:12px;cursor:pointer;border:1px solid #e1e4ea;background:#fff;color:#777;}
+.pill.active{background:#e3edfd;color:#1565ef;border-color:#1565ef;}
+.chart-bar-wrap{display:flex;align-items:flex-end;gap:10px;height:110px;margin:10px 0 4px;}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.bar{border-radius:5px 5px 0 0;width:100%;background:#1565ef;}
+.bar-label{font-size:10px;color:#999;}
+.bar-val{font-size:10px;color:#666;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px;}
+.list-card{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.icon-circle{width:36px;height:36px;border-radius:50%;background:#e3edfd;color:#1565ef;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;}
+.qr-block{background:#f5f6f8;border-radius:10px;padding:16px;text-align:center;margin:14px 0;}
+.factura-preview{border:1px solid #eef0f3;border-radius:10px;padding:14px;font-size:12px;}
+.factura-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.factura-logo{font-weight:800;font-size:14px;color:#1565ef;}
+.factura-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f3f4f6;}
+.factura-total{display:flex;justify-content:space-between;padding:9px 0 0;font-weight:800;}
+.badge-status{display:inline-block;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;background:#e3edfd;color:#1565ef;}
+.offline-bar{background:#fef3da;color:#a06b0a;padding:8px 20px;font-size:12.5px;font-weight:600;text-align:center;}
+.topbar{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:14px 28px;background:#fff;border-bottom:1px solid #eef0f3;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(11,31,58,0.45);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:26px 28px;width:400px;max-width:92%;}
+.modal-title{font-weight:800;font-size:17px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+textarea.field-input{resize:vertical;min-height:70px;font-family:inherit;}
+.profile-row{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:#e3edfd;color:#1565ef;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;}
+.announcement{border-left:3px solid #1565ef;padding:10px 14px;background:#f7f9fc;border-radius:0 8px 8px 0;margin-bottom:10px;}
+.announcement-date{font-size:11px;color:#999;}
+.pqr-status{font-weight:700;font-size:11px;}
+.pqr-status.abierto{color:#a06b0a;}
+.pqr-status.resuelto{color:#1c9b53;}
+</style>
+</head>
+<body>
+
+<!-- ===================== SPLASH ===================== -->
+<div id="screen-splash">
+  <div class="splash-card">
+    <div class="splash-drop"></div>
+    <div class="splash-title">AGUA TRANSPARENTE</div>
+    <div class="splash-sub">Sistema de gestion de servicios de agua potable</div>
+    <button class="btn-solid" onclick="goTo('login')">INGRESAR</button>
+  </div>
+</div>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="screen-login" class="hidden">
+  <div class="login-card">
+    <div class="login-title">Iniciar Sesion</div>
+    <div class="login-error" id="login-error">Usuario o contrasena incorrectos.</div>
+    <label class="field-label">Usuario</label>
+    <input class="field-input" id="login-user" type="text" placeholder="Ingrese su usuario" value="tesorero">
+    <label class="field-label">Contrasena</label>
+    <input class="field-input" id="login-pass" type="password" placeholder="Ingrese su contrasena" value="1234">
+    <a class="login-forgot" href="javascript:void(0)" onclick="alert('Se enviara un enlace de recuperacian al correo registrado.')">¿Olvido su contrasena?</a>
+    <button class="btn-solid" onclick="doLogin()">ENTRAR</button>
+  </div>
+</div>
+
+<!-- ===================== APP SHELL ===================== -->
+<div id="app-shell" class="hidden">
+  <nav class="sidebar">
+    <div class="sidebar-brand">AGUA TRANSPARENTE</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">Inicio</div>
+    <div class="nav-item" onclick="showPage('usuarios',this)">Usuarios</div>
+    <div class="nav-item" onclick="showPage('pagos',this)">Gestión de Pagos</div>
+    <div class="nav-item" onclick="showPage('facturas',this)">Facturación</div>
+    <div class="nav-item" onclick="showPage('pqrs',this)">PQRs</div>
+    <div class="nav-item" onclick="showPage('noticias',this)">Noticias y Anuncios</div>
+    <div class="nav-item" onclick="showPage('reportes',this)">Reportes</div>
+    <div class="nav-item" onclick="showPage('perfil',this)">Perfil de Usuario</div>
+    <div class="nav-spacer"></div>
+    <div class="nav-item" onclick="doLogout()">Cerrar Sesión</div>
+  </nav>
+
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+    <div class="topbar">
+      <span id="sync-label" style="font-size:12px;color:#1c9b53;font-weight:700;">● Sincronizado</span>
+      <button class="btn-sm" onclick="toggleOffline()"><span id="wifi-btn">Simular Offline</span></button>
+      <span class="badge-status">Tesorero</span>
+    </div>
+    <div id="offline-bar" class="offline-bar hidden">Modo offline — los datos se sincronizarán cuando haya conexión a internet.</div>
+
+    <div class="main-area" id="main-area">
+
+      <!-- DASHBOARD -->
+      <div class="page active wide-page" id="page-dashboard">
+        <div class="page-title">Inicio</div>
+        <div class="page-sub">Resumen del servicio — junio 2025</div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-label">Usuarios activos</div><div class="metric-value blue">48</div></div>
+          <div class="metric"><div class="metric-label">Recaudado (mes)</div><div class="metric-value green">$576.000</div></div>
+          <div class="metric"><div class="metric-label">Pendiente</div><div class="metric-value red">$144.000</div></div>
+          <div class="metric"><div class="metric-label">Morosos</div><div class="metric-value red">12</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Recaudo mensual 2025</div>
+          <div class="chart-bar-wrap" id="chart-bars"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Últimos pagos registrados</div>
+          <table><thead><tr><th>Usuario</th><th>Monto</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody id="dash-pagos"></tbody></table>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div class="page wide-page" id="page-usuarios">
+        <div class="page-title">Usuarios</div>
+        <div class="page-sub">Registro de familias conectadas al servicio</div>
+        <div class="search-bar">
+          <input class="field-input" style="margin-bottom:0" type="text" placeholder="Buscar usuario..." oninput="filterUsuarios(this.value)">
+          <button class="btn-solid" style="width:auto;padding:11px 18px;" onclick="openModal('modal-nuevo-usuario')">+ Nuevo usuario</button>
+        </div>
+        <div class="card" style="padding:0">
+          <table>
+            <thead><tr><th style="padding:14px 18px">Usuario</th><th style="padding:14px 18px">Vivienda</th><th style="padding:14px 18px">Estado</th><th style="padding:14px 18px">Saldo</th><th style="padding:14px 18px">Acciones</th></tr></thead>
+            <tbody id="tabla-usuarios"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PAGOS -->
+      <div class="page" id="page-pagos">
+        <div class="form-card" style="width:500px;">
+          <div class="form-card-title">Registrar Pago</div>
+          <label class="field-label">Usuario</label>
+          <select class="field-input" id="pago-usuario"><option>Seleccione un usuario</option></select>
+          <label class="field-label">Valor del pago</label>
+          <input class="field-input" type="number" id="pago-monto" placeholder="Ingrese el valor" value="12000">
+          <label class="field-label">Fecha de pago</label>
+          <input class="field-input" type="date" id="pago-fecha">
+          <label class="field-label">Metodo de pago</label>
+          <select class="field-input" id="pago-metodo"><option>Seleccione metodo</option><option>Efectivo</option><option>Transferencia</option><option>Abono</option></select>
+          <button class="btn-solid" onclick="registrarPago()">GUARDAR PAGO</button>
+        </div>
+        <div class="wide-page" style="padding-top:24px;max-width:500px;">
+          <div class="card">
+            <div class="card-title">Historial de pagos</div>
+            <div class="pill-row">
+              <span class="pill active" onclick="filterPagos('todos',this)">Todos</span>
+              <span class="pill" onclick="filterPagos('pagado',this)">Pagados</span>
+              <span class="pill" onclick="filterPagos('pendiente',this)">Pendientes</span>
+            </div>
+            <table><thead><tr><th>Usuario</th><th>Monto</th><th>Estado</th></tr></thead>
+            <tbody id="tabla-pagos"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FACTURACION -->
+      <div class="page" id="page-facturas">
+        <div class="form-card">
+          <div class="form-card-title">Generar Factura</div>
+          <label class="field-label">Usuario</label>
+          <select class="field-input" id="fac-usuario"><option>Seleccione un usuario</option></select>
+          <label class="field-label">Mes</label>
+          <select class="field-input" id="fac-mes">
+            <option>Seleccione el mes</option>
+            <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option selected>Junio</option><option>Julio</option><option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+          </select>
+          <label class="field-label">Ano</label>
+          <select class="field-input" id="fac-anio"><option>Seleccione el año</option><option selected>2025</option><option>2026</option></select>
+          <div class="btn-row" style="margin-bottom:12px;">
+            <button class="btn-solid" onclick="generarFactura()">GENERAR FACTURA</button>
+            <button class="btn-solid green" onclick="generarFacturaQR()">GENERAR CÓDIGO QR</button>
+          </div>
+          <button class="btn-outline" onclick="descargarPDF()">DESCARGAR PDF</button>
+        </div>
+        <div class="wide-page" style="padding-top:24px;max-width:420px;">
+          <div class="card">
+            <div class="card-title">Facturas recientes</div>
+            <div id="lista-facturas"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PQRs -->
+      <div class="page wide-page" id="page-pqrs">
+        <div class="page-title">PQRs</div>
+        <div class="page-sub">Peticiones, quejas, reclamos y sugerencias de la comunidad</div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title">Nueva PQR</div>
+            <label class="field-label">Usuario</label>
+            <select class="field-input" id="pqr-usuario"><option>Seleccione un usuario</option></select>
+            <label class="field-label">Tipo</label>
+            <select class="field-input" id="pqr-tipo"><option>Petición</option><option>Queja</option><option>Reclamo</option><option>Sugerencia</option></select>
+            <label class="field-label">Descripción</label>
+            <textarea class="field-input" id="pqr-desc" placeholder="Describa el caso..."></textarea>
+            <button class="btn-solid" onclick="registrarPQR()">ENVIAR PQR</button>
+          </div>
+          <div class="card">
+            <div class="card-title">PQRs registradas</div>
+            <div id="lista-pqrs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTICIAS -->
+      <div class="page wide-page" id="page-noticias">
+        <div class="page-title">Noticias y Anuncios</div>
+        <div class="page-sub">Comunicados de la Junta de Acción Comunal</div>
+        <div class="card">
+          <div class="card-title">Publicar anuncio</div>
+          <input class="field-input" type="text" id="anuncio-titulo" placeholder="Título del anuncio">
+          <textarea class="field-input" id="anuncio-texto" placeholder="Contenido del anuncio..."></textarea>
+          <button class="btn-solid" style="width:auto;padding:10px 20px;" onclick="publicarAnuncio()">PUBLICAR</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Anuncios recientes</div>
+          <div id="lista-anuncios"></div>
+        </div>
+      </div>
+
+      <!-- REPORTES -->
+      <div class="page wide-page" id="page-reportes">
+        <div class="page-title">Reportes</div>
+        <div class="page-sub">Estadísticas financieras del servicio</div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-label">Total recaudado 2025</div><div class="metric-value green">$3.240.000</div></div>
+          <div class="metric"><div class="metric-label">Promedio mensual</div><div class="metric-value blue">$540.000</div></div>
+          <div class="metric"><div class="metric-label">Tasa de pago</div><div class="metric-value blue">80%</div></div>
+          <div class="metric"><div class="metric-label">Deuda total</div><div class="metric-value red">$144.000</div></div>
+        </div>
+        <div class="report-grid">
+          <div class="card">
+            <div class="card-title">Estado de cuentas</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
+              <div style="display:flex;justify-content:space-between"><span style="color:#777">Al día</span><span style="color:#1c9b53;font-weight:700">36 usuarios (75%)</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:#777">Con deuda</span><span style="color:#a06b0a;font-weight:700">8 usuarios (17%)</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:#777">Morosos</span><span style="color:#d8473f;font-weight:700">4 usuarios (8%)</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Cuota mensual</div>
+            <div style="font-size:29px;font-weight:800;color:#1565ef;margin-bottom:4px">$12.000</div>
+            <div style="font-size:12px;color:#999">por vivienda / mes</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Morosos (2+ meses de deuda)</div>
+          <div id="tabla-morosos-wrap"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Exportar reporte</div>
+          <div class="btn-row">
+            <button class="btn-outline" onclick="alert('Exportando PDF...')">PDF</button>
+            <button class="btn-outline" onclick="alert('Exportando Excel...')">Excel</button>
+            <button class="btn-outline" onclick="alert('Compartiendo...')">Compartir</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERFIL -->
+      <div class="page wide-page" id="page-perfil" style="max-width:560px;">
+        <div class="page-title">Perfil de Usuario</div>
+        <div class="page-sub">Información de la cuenta</div>
+        <div class="card">
+          <div class="profile-row">
+            <div class="profile-avatar">TE</div>
+            <div>
+              <div style="font-weight:800;font-size:16px;">Tesorero JAC</div>
+              <div style="color:#777;font-size:12.5px;">Vereda Las Bocas, Córdoba</div>
+            </div>
+          </div>
+          <label class="field-label">Nombre completo</label>
+          <input class="field-input" type="text" value="Gabriel Sanes">
+          <label class="field-label">Correo electrónico</label>
+          <input class="field-input" type="email" value="tesorero@aguatransparente.co">
+          <label class="field-label">Teléfono</label>
+          <input class="field-input" type="text" value="3001234567">
+          <button class="btn-solid" onclick="alert('Perfil actualizado correctamente.')">GUARDAR CAMBIOS</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Seguridad</div>
+          <label class="field-label">Cambiar PIN de acceso</label>
+          <input class="field-input" type="password" placeholder="Nuevo PIN" maxlength="4">
+          <button class="btn-outline" onclick="alert('PIN actualizado.')">ACTUALIZAR PIN</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL NUEVO USUARIO ===================== -->
+<div class="modal-overlay" id="modal-nuevo-usuario">
+  <div class="modal">
+    <div class="modal-title">Nuevo usuario <button class="btn-sm" onclick="closeModal('modal-nuevo-usuario')">✕</button></div>
+    <label class="field-label">Nombre</label>
+    <input class="field-input" id="nu-nombre" type="text" placeholder="Ej: Carlos">
+    <label class="field-label">Apellido</label>
+    <input class="field-input" id="nu-apellido" type="text" placeholder="Ej: Ruiz">
+    <label class="field-label">Número de vivienda</label>
+    <input class="field-input" id="nu-vivienda" type="text" placeholder="Ej: Casa 12">
+    <label class="field-label">Teléfono</label>
+    <input class="field-input" id="nu-tel" type="text" placeholder="Ej: 3001234567">
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-nuevo-usuario')">Cancelar</button>
+      <button class="btn-solid" style="width:auto;padding:10px 18px;" onclick="guardarUsuario()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL FACTURA ===================== -->
+<div class="modal-overlay" id="modal-factura">
+  <div class="modal" style="width:430px">
+    <div class="modal-title">Factura generada <button class="btn-sm" onclick="closeModal('modal-factura')">✕</button></div>
+    <div class="factura-preview" id="factura-content"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-factura')">Cerrar</button>
+      <button class="btn-solid" style="width:auto;padding:10px 18px;" onclick="alert('Descargando PDF...')">Descargar PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+let usuarios = [
+  {id:1, nombre:'Ana García', vivienda:'Casa 1', estado:'pagado', saldo:0, meses_deuda:0},
+  {id:2, nombre:'Luis Pérez', vivienda:'Casa 2', estado:'pendiente', saldo:12000, meses_deuda:1},
+  {id:3, nombre:'María López', vivienda:'Casa 3', estado:'moroso', saldo:36000, meses_deuda:3},
+  {id:4, nombre:'Carlos Ruiz', vivienda:'Casa 4', estado:'pagado', saldo:0, meses_deuda:0},
+  {id:5, nombre:'Rosa Díaz', vivienda:'Casa 5', estado:'moroso', saldo:24000, meses_deuda:2},
+  {id:6, nombre:'Pedro Suárez', vivienda:'Casa 6', estado:'pagado', saldo:0, meses_deuda:0},
+  {id:7, nombre:'Lucía Torres', vivienda:'Casa 7', estado:'pendiente', saldo:12000, meses_deuda:1},
+  {id:8, nombre:'Javier Mora', vivienda:'Casa 8', estado:'pagado', saldo:0, meses_deuda:0},
+];
+let pagos = [
+  {id:1, usuario:'Ana García', monto:12000, fecha:'01/06/2025', estado:'pagado'},
+  {id:2, usuario:'Carlos Ruiz', monto:12000, fecha:'02/06/2025', estado:'pagado'},
+  {id:3, usuario:'Pedro Suárez', monto:12000, fecha:'03/06/2025', estado:'pagado'},
+  {id:4, usuario:'Luis Pérez', monto:12000, fecha:'—', estado:'pendiente'},
+  {id:5, usuario:'Javier Mora', monto:12000, fecha:'05/06/2025', estado:'pagado'},
+];
+let facturas = [
+  {id:'FAC-001', usuario:'Ana García', monto:12000, mes:'Junio', anio:'2025', fecha:'01/06/2025'},
+  {id:'FAC-002', usuario:'Carlos Ruiz', monto:12000, mes:'Junio', anio:'2025', fecha:'02/06/2025'},
+  {id:'FAC-003', usuario:'Pedro Suárez', monto:12000, mes:'Junio', anio:'2025', fecha:'03/06/2025'},
+];
+let pqrs = [
+  {id:1, usuario:'Luis Pérez', tipo:'Reclamo', desc:'Factura con valor incorrecto.', estado:'abierto'},
+  {id:2, usuario:'María López', tipo:'Petición', desc:'Solicitud de plan de pago.', estado:'resuelto'},
+];
+let anuncios = [
+  {titulo:'Corte programado de agua', texto:'El día 5 de julio habrá corte del servicio de 8am a 12pm por mantenimiento.', fecha:'28/06/2025'},
+  {titulo:'Reunión de la Junta', texto:'Se cita a todos los usuarios a la reunión mensual el próximo sábado.', fecha:'20/06/2025'},
+];
+let filtroActual='todos';
+let isOffline=false;
+
+/* ===================== NAVIGATION ===================== */
+function goTo(screen){
+  document.getElementById('screen-splash').classList.add('hidden');
+  document.getElementById('screen-login').classList.add('hidden');
+  document.getElementById('app-shell').classList.add('hidden');
+  if(screen==='login') document.getElementById('screen-login').classList.remove('hidden');
+  if(screen==='app') document.getElementById('app-shell').classList.remove('hidden');
+}
+
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value.trim();
+  const err=document.getElementById('login-error');
+  if(u==='' || p===''){ err.textContent='Por favor ingrese usuario y contraseña.'; err.style.display='block'; return; }
+  err.style.display='none';
+  goTo('app');
+}
+
+function doLogout(){
+  goTo('login');
+}
+
+function showPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function initials(name){ return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+
+/* ===================== USUARIOS ===================== */
+function renderUsuarios(list){
+  document.getElementById('tabla-usuarios').innerHTML = list.map(u=>`
+    <tr>
+      <td style="padding:11px 18px"><div class="user-cell"><div class="avatar">${initials(u.nombre)}</div>${u.nombre}</div></td>
+      <td style="padding:11px 18px;color:#777">${u.vivienda}</td>
+      <td style="padding:11px 18px"><span class="status ${u.estado}">${u.estado.charAt(0).toUpperCase()+u.estado.slice(1)}</span></td>
+      <td style="padding:11px 18px;color:${u.saldo>0?'#d8473f':'#1c9b53'}">${u.saldo>0?'$'+u.saldo.toLocaleString():'Al día'}</td>
+      <td style="padding:11px 18px"><div class="row-actions">
+        <button class="btn-sm" onclick="goFacturaUsuario('${u.nombre}')">Factura</button>
+        <button class="btn-sm" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+      </div></td>
+    </tr>`).join('');
+}
+function filterUsuarios(q){
+  renderUsuarios(usuarios.filter(u=>u.nombre.toLowerCase().includes(q.toLowerCase())||u.vivienda.toLowerCase().includes(q.toLowerCase())));
+}
+function eliminarUsuario(id){
+  if(confirm('¿Eliminar este usuario?')){ usuarios=usuarios.filter(u=>u.id!==id); renderUsuarios(usuarios); poblarSelects(); }
+}
+function guardarUsuario(){
+  const n=document.getElementById('nu-nombre').value.trim();
+  const a=document.getElementById('nu-apellido').value.trim();
+  const v=document.getElementById('nu-vivienda').value.trim();
+  if(!n||!v){ alert('Completa al menos nombre y vivienda.'); return; }
+  usuarios.push({id:Date.now(), nombre:n+' '+a, vivienda:v, estado:'pendiente', saldo:0, meses_deuda:0});
+  renderUsuarios(usuarios);
+  closeModal('modal-nuevo-usuario');
+  ['nu-nombre','nu-apellido','nu-vivienda','nu-tel'].forEach(id=>document.getElementById(id).value='');
+  poblarSelects();
+}
+function poblarSelects(){
+  const opts='<option>Seleccione un usuario</option>'+usuarios.map(u=>`<option>${u.nombre}</option>`).join('');
+  document.getElementById('pago-usuario').innerHTML=opts;
+  document.getElementById('fac-usuario').innerHTML=opts;
+  document.getElementById('pqr-usuario').innerHTML=opts;
+}
+
+/* ===================== PAGOS ===================== */
+function renderPagos(lista){
+  document.getElementById('tabla-pagos').innerHTML=lista.map(p=>`
+    <tr><td><div class="user-cell"><div class="avatar" style="width:24px;height:24px;font-size:9px">${initials(p.usuario)}</div>${p.usuario}</div></td>
+    <td>$${p.monto.toLocaleString()}</td><td><span class="status ${p.estado}">${p.estado}</span></td></tr>`).join('');
+}
+function filterPagos(estado, el){
+  filtroActual=estado;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderPagos(estado==='todos'?pagos:pagos.filter(p=>p.estado===estado));
+}
+function registrarPago(){
+  const u=document.getElementById('pago-usuario').value;
+  const m=parseInt(document.getElementById('pago-monto').value)||0;
+  if(u==='Seleccione un usuario'){ alert('Selecciona un usuario.'); return; }
+  const fechaInput=document.getElementById('pago-fecha').value;
+  const fecha=fechaInput ? fechaInput.split('-').reverse().join('/') : new Date().toLocaleDateString('es-CO');
+  pagos.unshift({id:Date.now(), usuario:u, monto:m, fecha, estado:'pagado'});
+  renderPagos(filtroActual==='todos'?pagos:pagos.filter(p=>p.estado===filtroActual));
+  initDashPagos();
+  alert('Pago registrado correctamente para '+u+'.');
+}
+
+/* ===================== FACTURACION ===================== */
+function qrSvg(text){
+  const cell=8, cols=10, bits=[];
+  for(let i=0;i<cols*cols;i++) bits.push((text.charCodeAt(i%text.length)^i)%3>0?1:0);
+  let rects='';
+  bits.forEach((b,i)=>{ if(b){ const x=(i%cols)*cell, y=Math.floor(i/cols)*cell; rects+=`<rect x="${x}" y="${y}" width="${cell}" height="${cell}" fill="#0b1f3a"/>`; }});
+  return `<svg style="display:block;margin:0 auto 8px" width="84" height="84" viewBox="0 0 ${cols*cell} ${cols*cell}" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
+}
+function buildFacturaObj(){
+  const u=document.getElementById('fac-usuario').value;
+  const mes=document.getElementById('fac-mes').value;
+  const anio=document.getElementById('fac-anio').value;
+  if(u==='Seleccione un usuario'){ alert('Selecciona un usuario.'); return null; }
+  const fid='FAC-'+(facturas.length+1).toString().padStart(3,'0');
+  const fecha=new Date().toLocaleDateString('es-CO');
+  const f={id:fid, usuario:u, monto:12000, mes, anio, fecha};
+  facturas.unshift(f);
+  renderFacturas();
+  return f;
+}
+function generarFactura(){
+  const f=buildFacturaObj();
+  if(f) mostrarFacturaModal(f, false);
+}
+function generarFacturaQR(){
+  const f=buildFacturaObj();
+  if(f) mostrarFacturaModal(f, true);
+}
+function descargarPDF(){ alert('Descargando factura en PDF...'); }
+function goFacturaUsuario(nombre){
+  showPage('facturas', document.querySelectorAll('.nav-item')[3]);
+  document.getElementById('fac-usuario').value=nombre;
+}
+function mostrarFacturaModal(f, conQR){
+  document.getElementById('factura-content').innerHTML=`
+    <div class="factura-header">
+      <div><div class="factura-logo">💧 Agua Transparente</div><div style="font-size:11px;color:#999">Junta de Acción Comunal<br>Vereda Las Bocas, Córdoba</div></div>
+      <div style="text-align:right;font-size:11px;color:#999"><strong style="color:#1a1a1a">${f.id}</strong><br>${f.fecha}</div>
+    </div>
+    <div class="factura-row"><span style="color:#777">Usuario</span><span>${f.usuario}</span></div>
+    <div class="factura-row"><span style="color:#777">Período</span><span>${f.mes} ${f.anio}</span></div>
+    <div class="factura-row"><span style="color:#777">Servicio</span><span>Agua potable</span></div>
+    <div class="factura-total"><span>Total a pagar</span><span style="color:#1565ef;font-size:15px">$${f.monto.toLocaleString()}</span></div>
+    ${conQR ? `<div class="qr-block">${qrSvg(f.id+f.usuario)}<div style="font-size:11px;color:#999">Código QR — ${f.id}</div></div>` : ''}
+  `;
+  openModal('modal-factura');
+}
+function renderFacturas(){
+  document.getElementById('lista-facturas').innerHTML=facturas.map(f=>`
+    <div class="list-card" style="padding:10px 0;border-bottom:1px solid #f3f4f6;">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="icon-circle"></div>
+        <div><div style="font-weight:700;font-size:13px;">${f.id}</div><div style="font-size:11.5px;color:#777">${f.usuario} · ${f.mes} ${f.anio}</div></div>
+      </div>
+      <button class="btn-sm" onclick='mostrarFacturaModal(${JSON.stringify(f)}, true)'>Ver</button>
+    </div>`).join('');
+}
+
+/* ===================== PQRS ===================== */
+function renderPQRs(){
+  document.getElementById('lista-pqrs').innerHTML=pqrs.map(p=>`
+    <div style="padding:10px 0;border-bottom:1px solid #f3f4f6;">
+      <div style="display:flex;justify-content:space-between;">
+        <strong style="font-size:13px;">${p.tipo} — ${p.usuario}</strong>
+        <span class="pqr-status ${p.estado}">${p.estado.toUpperCase()}</span>
+      </div>
+      <div style="font-size:12.5px;color:#666;margin-top:3px;">${p.desc}</div>
+    </div>`).join('');
+}
+function registrarPQR(){
+  const u=document.getElementById('pqr-usuario').value;
+  const t=document.getElementById('pqr-tipo').value;
+  const d=document.getElementById('pqr-desc').value.trim();
+  if(u==='Seleccione un usuario'||!d){ alert('Completa el usuario y la descripción.'); return; }
+  pqrs.unshift({id:Date.now(), usuario:u, tipo:t, desc:d, estado:'abierto'});
+  renderPQRs();
+  document.getElementById('pqr-desc').value='';
+  alert('PQR enviada correctamente.');
+}
+
+/* ===================== NOTICIAS ===================== */
+function renderAnuncios(){
+  document.getElementById('lista-anuncios').innerHTML=anuncios.map(a=>`
+    <div class="announcement">
+      <div style="font-weight:700;font-size:13.5px;">${a.titulo}</div>
+      <div class="announcement-date">${a.fecha}</div>
+      <div style="font-size:12.5px;color:#555;margin-top:4px;">${a.texto}</div>
+    </div>`).join('');
+}
+function publicarAnuncio(){
+  const t=document.getElementById('anuncio-titulo').value.trim();
+  const x=document.getElementById('anuncio-texto').value.trim();
+  if(!t||!x){ alert('Completa título y contenido.'); return; }
+  anuncios.unshift({titulo:t, texto:x, fecha:new Date().toLocaleDateString('es-CO')});
+  renderAnuncios();
+  document.getElementById('anuncio-titulo').value='';
+  document.getElementById('anuncio-texto').value='';
+}
+
+/* ===================== REPORTES / MOROSOS ===================== */
+function renderMorosos(){
+  const m=usuarios.filter(u=>u.meses_deuda>=2);
+  document.getElementById('tabla-morosos-wrap').innerHTML=`
+    <table>
+      <thead><tr><th>Usuario</th><th>Vivienda</th><th>Meses deuda</th><th>Total</th><th></th></tr></thead>
+      <tbody>${m.map(u=>`
+        <tr>
+          <td><div class="user-cell"><div class="avatar">${initials(u.nombre)}</div>${u.nombre}</div></td>
+          <td style="color:#777">${u.vivienda}</td>
+          <td><span class="status moroso">${u.meses_deuda} meses</span></td>
+          <td style="color:#d8473f;font-weight:700">$${u.saldo.toLocaleString()}</td>
+          <td><button class="btn-sm" onclick="alert('Notificación enviada a ${u.nombre}')">Notificar</button></td>
+        </tr>`).join('')}</tbody>
+    </table>`;
+}
+function initChart(){
+  const meses=['Ene','Feb','Mar','Abr','May','Jun'];
+  const vals=[480000,504000,516000,528000,552000,576000];
+  const max=Math.max(...vals);
+  document.getElementById('chart-bars').innerHTML=meses.map((m,i)=>`
+    <div class="bar-col">
+      <div class="bar-val">$${(vals[i]/1000).toFixed(0)}k</div>
+      <div class="bar" style="height:${Math.round((vals[i]/max)*80)}px" title="${m}: $${vals[i].toLocaleString()}"></div>
+      <div class="bar-label">${m}</div>
+    </div>`).join('');
+}
+function initDashPagos(){
+  document.getElementById('dash-pagos').innerHTML=pagos.slice(0,5).map(p=>`
+    <tr><td><div class="user-cell"><div class="avatar" style="width:24px;height:24px;font-size:9px">${initials(p.usuario)}</div>${p.usuario}</div></td>
+    <td>$${p.monto.toLocaleString()}</td><td>${p.fecha}</td><td><span class="status ${p.estado}">${p.estado}</span></td></tr>`).join('');
+}
+
+/* ===================== OFFLINE TOGGLE ===================== */
+function toggleOffline(){
+  isOffline=!isOffline;
+  document.getElementById('offline-bar').classList.toggle('hidden', !isOffline);
+  const lbl=document.getElementById('sync-label');
+  lbl.textContent=isOffline?'● Offline':'● Sincronizado';
+  lbl.style.color=isOffline?'#a06b0a':'#1c9b53';
+  document.getElementById('wifi-btn').textContent=isOffline?'Volver Online':'Simular Offline';
+}
+
+/* ===================== INIT ===================== */
+renderUsuarios(usuarios);
+poblarSelects();
+renderPagos(pagos);
+renderFacturas();
+renderPQRs();
+renderAnuncios();
+renderMorosos();
+initChart();
+initDashPagos();
+</script>
+</body>
+</html>
