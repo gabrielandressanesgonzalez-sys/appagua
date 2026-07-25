@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Agua Transparente</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f5f5f0; color: #1a1a1a; font-size: 14px; }
+.app { display: flex; height: 100vh; flex-direction: column; }
+.topbar { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 0 16px; height: 52px; display: flex; align-items: center; justify-content: space-between; }
+.topbar-brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+.topbar-brand .dot { width: 28px; height: 28px; border-radius: 50%; background: #e6f1fb; display: flex; align-items: center; justify-content: center; }
+.topbar-brand .dot i { color: #185fa5; font-size: 15px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.badge-role { background: #eaf3de; color: #3b6d11; border-radius: 99px; padding: 2px 10px; font-size: 11px; }
+.main { display: flex; flex: 1; overflow: hidden; }
+.sidebar { width: 200px; background: #fafaf8; border-right: 1px solid #e5e5e5; display: flex; flex-direction: column; padding: 12px 0; flex-shrink: 0; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; cursor: pointer; color: #666; font-size: 13px; }
+.nav-item:hover { background: #f0f0ec; color: #1a1a1a; }
+.nav-item.active { background: #e6f1fb; color: #185fa5; font-weight: 600; }
+.nav-item i { font-size: 16px; }
+.nav-section { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; padding: 14px 16px 4px; }
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.page-sub { color: #666; font-size: 13px; margin-bottom: 20px; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.metric { background: #fafaf8; border-radius: 8px; padding: 14px; }
+.metric-label { font-size: 11px; color: #aaa; margin-bottom: 4px; }
+.metric-value { font-size: 22px; font-weight: 600; }
+.metric-value.green { color: #3b6d11; }
+.metric-value.red { color: #a32d2d; }
+.metric-value.blue { color: #185fa5; }
+.card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+.card-title { font-weight: 600; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; color: #aaa; font-weight: 400; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 0 8px; border-bottom: 1px solid #e5e5e5; }
+td { padding: 9px 0; border-bottom: 1px solid #e5e5e5; color: #1a1a1a; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+.status { display: inline-block; border-radius: 99px; padding: 2px 8px; font-size: 11px; }
+.status.pagado { background: #eaf3de; color: #3b6d11; }
+.status.pendiente { background: #faeeda; color: #854f0b; }
+.status.moroso { background: #fcebeb; color: #a32d2d; }
+.btn { border: 1px solid #ccc; background: transparent; border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; color: #1a1a1a; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { background: #f5f5f0; }
+.btn.primary { background: #185fa5; color: #fff; border-color: #185fa5; }
+.btn.primary:hover { background: #0c447c; }
+.btn.sm { padding: 4px 10px; font-size: 12px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; color: #666; margin-bottom: 5px; display: block; }
+input, select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; background: #fafaf8; color: #1a1a1a; font-family: Arial, sans-serif; }
+input:focus, select:focus { outline: none; border-color: #185fa5; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row-actions { display: flex; gap: 6px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: #e6f1fb; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #185fa5; flex-shrink: 0; }
+.user-cell { display: flex; align-items: center; gap: 8px; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 20px; width: 380px; max-width: 95%; }
+.modal-title { font-weight: 600; font-size: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.qr-block { background: #f5f5f0; border-radius: 8px; padding: 16px; text-align: center; margin: 12px 0; }
+.offline-bar { background: #faeeda; color: #854f0b; padding: 6px 16px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.search-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+.search-bar input { max-width: 240px; }
+.factura-preview { border: 1px solid #e5e5e5; border-radius: 8px; padding: 14px; font-size: 12px; }
+.factura-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.factura-logo { font-weight: 600; font-size: 14px; color: #185fa5; }
+.factura-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #e5e5e5; }
+.factura-total { display: flex; justify-content: space-between; padding: 8px 0 0; font-weight: 600; }
+.chart-bar-wrap { display: flex; align-items: flex-end; gap: 8px; height: 100px; margin: 12px 0; }
+.bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.bar { border-radius: 4px 4px 0 0; width: 100%; background: #185fa5; }
+.bar-label { font-size: 10px; color: #aaa; }
+.bar-val { font-size: 10px; color: #666; }
+.pill-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.pill { padding: 4px 12px; border-radius: 99px; font-size: 12px; cursor: pointer; border: 1px solid #ccc; background: transparent; color: #666; }
+.pill.active { background: #e6f1fb; color: #185fa5; border-color: #b5d4f4; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #3b6d11; display: inline-block; }
+.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="dot"><i class="ti ti-droplet"></i></div>
+      Agua Transparente
+    </div>
+    <div class="topbar-right">
+      <span id="offline-indicator" class="sync-dot" title="En línea"></span>
+      <span style="font-size:12px;color:#aaa" id="sync-label">Sincronizado</span>
+      <button class="btn sm" onclick="toggleOffline()"><i class="ti ti-wifi"></i> <span id="wifi-btn">Simular Offline</span></button>
+      <div class="badge-role">Tesorero</div>
+    </div>
+  </div>
+
+  <div id="offline-bar" class="offline-bar" style="display:none">
+    <i class="ti ti-wifi-off"></i> Modo offline — los datos se sincronizarán cuando haya conexión.
+  </div>
+
+  <div class="main">
+    <nav class="sidebar">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+      <div class="nav-item" onclick="showPage('usuarios',this)"><i class="ti ti-users"></i> Usuarios</div>
+      <div class="nav-section">Financiero</div>
+      <div class="nav-item" onclick="showPage('pagos',this)"><i class="ti ti-cash"></i> Pagos</div>
+      <div class="nav-item" onclick="showPage('facturas',this)"><i class="ti ti-file-invoice"></i> Facturas</div>
+      <div class="nav-section">Informes</div>
+      <div class="nav-item" onclick="showPage('reportes',this)"><i class="ti ti-chart-bar"></i> Reportes</div>
+      <div class="nav-item" onclick="showPage('morosos',this)"><i class="ti ti-alert-circle"></i> Morosos</div>
+    </nav>
+
+    <main class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Resumen del servicio — junio 2025</div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-label">Usuarios activos</div><div class="metric-value blue">48</div></div>
+          <div class="metric"><div class="metric-label">Recaudado (mes)</div><div class="metric-value green">$576.000</div></div>
+          <div class="metric"><div class="metric-label">Pendiente</div><div class="metric-value red">$144.000</div></div>
+          <div class="metric"><div class="metric-label">Morosos</div><div class="metric-value red">12</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Recaudo mensual 2025</div>
+          <div class="chart-bar-wrap" id="chart-bars"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Últimos pagos registrados</div>
+          <table>
+            <thead><tr><th>Usuario</th><th>Monto</th><th>Fecha</th><th>Estado</th></tr></thead>
+            <tbody id="dash-pagos"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div class="page" id="page-usuarios">
+        <div class="page-title">Usuarios</div>
+        <div class="page-sub">Registro de familias conectadas al servicio</div>
+        <div class="search-bar">
+          <input type="text" placeholder="Buscar usuario..." oninput="filterUsuarios(this.value)">
+          <button class="btn primary" onclick="openModal('modal-nuevo-usuario')"><i class="ti ti-plus"></i> Nuevo usuario</button>
+        </div>
+        <div class="card" style="padding:0">
+          <table>
+            <thead><tr>
+              <th style="padding:12px 16px">Usuario</th>
+              <th style="padding:12px 16px">Vivienda</th>
+              <th style="padding:12px 16px">Estado</th>
+              <th style="padding:12px 16px">Saldo</th>
+              <th style="padding:12px 16px">Acciones</th>
+            </tr></thead>
+            <tbody id="tabla-usuarios"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PAGOS -->
+      <div class="page" id="page-pagos">
+        <div class="page-title">Registrar pago</div>
+        <div class="page-sub">Ingresa el cobro mensual o un abono de un usuario</div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title">Nuevo pago</div>
+            <div class="form-group"><label class="form-label">Usuario</label><select id="pago-usuario"><option>Seleccionar...</option></select></div>
+            <div class="form-group"><label class="form-label">Tipo</label><select id="pago-tipo"><option>Pago mensual</option><option>Abono</option><option>Pago vencido</option></select></div>
+            <div class="form-group"><label class="form-label">Monto ($)</label><input type="number" id="pago-monto" value="12000"></div>
+            <div class="form-group"><label class="form-label">Observación</label><input type="text" id="pago-obs" placeholder="Opcional"></div>
+            <button class="btn primary" onclick="registrarPago()" style="width:100%"><i class="ti ti-check"></i> Registrar y generar factura</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Historial de pagos</div>
+            <div class="pill-row">
+              <span class="pill active" onclick="filterPagos('todos',this)">Todos</span>
+              <span class="pill" onclick="filterPagos('pagado',this)">Pagados</span>
+              <span class="pill" onclick="filterPagos('pendiente',this)">Pendientes</span>
+            </div>
+            <table><thead><tr><th>Usuario</th><th>Monto</th><th>Estado</th></tr></thead>
+            <tbody id="tabla-pagos"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FACTURAS -->
+      <div class="page" id="page-facturas">
+        <div class="page-title">Facturas</div>
+        <div class="page-sub">Consulta y descarga facturas con código QR</div>
+        <div class="search-bar">
+          <input type="text" placeholder="Buscar factura o usuario..." oninput="filterFacturas(this.value)">
+        </div>
+        <div id="lista-facturas"></div>
+      </div>
+
+      <!-- REPORTES -->
+      <div class="page" id="page-reportes">
+        <div class="page-title">Reportes</div>
+        <div class="page-sub">Estadísticas financieras del servicio</div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-label">Total recaudado 2025</div><div class="metric-value green">$3.240.000</div></div>
+          <div class="metric"><div class="metric-label">Promedio mensual</div><div class="metric-value blue">$540.000</div></div>
+          <div class="metric"><div class="metric-label">Tasa de pago</div><div class="metric-value blue">80%</div></div>
+          <div class="metric"><div class="metric-label">Deuda total</div><div class="metric-value red">$144.000</div></div>
+        </div>
+        <div class="report-grid">
+          <div class="card">
+            <div class="card-title">Estado de cuentas</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+              <div style="display:flex;justify-content:space-between"><span style="color:#666">Al día</span><span style="color:#3b6d11;font-weight:600">36 usuarios (75%)</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:#666">Con deuda</span><span style="color:#854f0b;font-weight:600">8 usuarios (17%)</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:#666">Morosos</span><span style="color:#a32d2d;font-weight:600">4 usuarios (8%)</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Cuota mensual</div>
+            <div style="font-size:28px;font-weight:600;color:#185fa5;margin-bottom:4px">$12.000</div>
+            <div style="font-size:12px;color:#aaa">por vivienda / mes</div>
+            <div style="margin-top:12px;font-size:13px;color:#666">Tarifa vigente desde enero 2025</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Exportar reporte</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="alert('Exportando PDF...')"><i class="ti ti-file-type-pdf"></i> PDF</button>
+            <button class="btn" onclick="alert('Exportando Excel...')"><i class="ti ti-table"></i> Excel</button>
+            <button class="btn" onclick="alert('Compartiendo...')"><i class="ti ti-share"></i> Compartir</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOROSOS -->
+      <div class="page" id="page-morosos">
+        <div class="page-title">Morosos</div>
+        <div class="page-sub">Usuarios con deuda de 2 o más meses</div>
+        <div id="tabla-morosos-wrap"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL NUEVO USUARIO -->
+<div class="modal-overlay" id="modal-nuevo-usuario">
+  <div class="modal">
+    <div class="modal-title">Nuevo usuario <button class="btn sm" onclick="closeModal('modal-nuevo-usuario')"><i class="ti ti-x"></i></button></div>
+    <div class="grid2">
+      <div class="form-group"><label class="form-label">Nombre</label><input type="text" id="nu-nombre" placeholder="Ej: Carlos"></div>
+      <div class="form-group"><label class="form-label">Apellido</label><input type="text" id="nu-apellido" placeholder="Ej: Ruiz"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Número de vivienda</label><input type="text" id="nu-vivienda" placeholder="Ej: Casa 12"></div>
+    <div class="form-group"><label class="form-label">Teléfono</label><input type="text" id="nu-tel" placeholder="Ej: 3001234567"></div>
+    <div class="form-group"><label class="form-label">PIN de acceso</label><input type="password" id="nu-pin" placeholder="4 dígitos" maxlength="4"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-nuevo-usuario')">Cancelar</button>
+      <button class="btn primary" onclick="guardarUsuario()"><i class="ti ti-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FACTURA -->
+<div class="modal-overlay" id="modal-factura">
+  <div class="modal" style="width:420px">
+    <div class="modal-title">Factura generada <button class="btn sm" onclick="closeModal('modal-factura')"><i class="ti ti-x"></i></button></div>
+    <div class="factura-preview" id="factura-content"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-factura')">Cerrar</button>
+      <button class="btn primary" onclick="alert('Descargando PDF...')"><i class="ti ti-download"></i> Descargar PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let usuarios = [
+  {id:1, nombre:'Ana García', vivienda:'Casa 1', estado:'pagado', saldo:0, meses_deuda:0},
+  {id:2, nombre:'Luis Pérez', vivienda:'Casa 2', estado:'pendiente', saldo:12000, meses_deuda:1},
+  {id:3, nombre:'María López', vivienda:'Casa 3', estado:'moroso', saldo:36000, meses_deuda:3},
+  {id:4, nombre:'Carlos Ruiz', vivienda:'Casa 4', estado:'pagado', saldo:0, meses_deuda:0},
+  {id:5, nombre:'Rosa Díaz', vivienda:'Casa 5', estado:'moroso', saldo:24000, meses_deuda:2},
+  {id:6, nombre:'Pedro Suárez', vivienda:'Casa 6', estado:'pagado', saldo:0, meses_deuda:0},
+  {id:7, nombre:'Lucía Torres', vivienda:'Casa 7', estado:'pendiente', saldo:12000, meses_deuda:1},
+  {id:8, nombre:'Javier Mora', vivienda:'Casa 8', estado:'pagado', saldo:0, meses_deuda:0},
+];
+
+let pagos = [
+  {id:1, usuario:'Ana García', monto:12000, fecha:'01/06/2025', estado:'pagado', tipo:'Pago mensual'},
+  {id:2, usuario:'Carlos Ruiz', monto:12000, fecha:'02/06/2025', estado:'pagado', tipo:'Pago mensual'},
+  {id:3, usuario:'Pedro Suárez', monto:12000, fecha:'03/06/2025', estado:'pagado', tipo:'Pago mensual'},
+  {id:4, usuario:'Luis Pérez', monto:12000, fecha:'—', estado:'pendiente', tipo:'Pago mensual'},
+  {id:5, usuario:'Javier Mora', monto:12000, fecha:'05/06/2025', estado:'pagado', tipo:'Pago mensual'},
+];
+
+let facturas = [
+  {id:'FAC-001', usuario:'Ana García', monto:12000, mes:'Junio 2025', fecha:'01/06/2025'},
+  {id:'FAC-002', usuario:'Carlos Ruiz', monto:12000, mes:'Junio 2025', fecha:'02/06/2025'},
+  {id:'FAC-003', usuario:'Pedro Suárez', monto:12000, mes:'Junio 2025', fecha:'03/06/2025'},
+  {id:'FAC-004', usuario:'Javier Mora', monto:12000, mes:'Junio 2025', fecha:'05/06/2025'},
+];
+
+let filtroActual = 'todos';
+
+function initials(name){ return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+
+function showPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function renderUsuarios(list){
+  const tb = document.getElementById('tabla-usuarios');
+  tb.innerHTML = list.map(u=>`
+    <tr>
+      <td style="padding:10px 16px"><div class="user-cell"><div class="avatar">${initials(u.nombre)}</div><div><div style="font-weight:600;font-size:13px">${u.nombre}</div></div></div></td>
+      <td style="padding:10px 16px;color:#666">${u.vivienda}</td>
+      <td style="padding:10px 16px"><span class="status ${u.estado}">${u.estado.charAt(0).toUpperCase()+u.estado.slice(1)}</span></td>
+      <td style="padding:10px 16px;color:${u.saldo>0?'#a32d2d':'#3b6d11'}">${u.saldo>0?'$'+u.saldo.toLocaleString():'Al día'}</td>
+      <td style="padding:10px 16px"><div class="row-actions">
+        <button class="btn sm" onclick="verFactura('${u.nombre}')"><i class="ti ti-file-invoice"></i></button>
+        <button class="btn sm"><i class="ti ti-edit"></i></button>
+        <button class="btn sm" onclick="eliminarUsuario(${u.id})"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function filterUsuarios(q){
+  renderUsuarios(usuarios.filter(u=>u.nombre.toLowerCase().includes(q.toLowerCase())||u.vivienda.toLowerCase().includes(q.toLowerCase())));
+}
+
+function eliminarUsuario(id){
+  if(confirm('¿Eliminar este usuario?')){ usuarios=usuarios.filter(u=>u.id!==id); renderUsuarios(usuarios); }
+}
+
+function guardarUsuario(){
+  const n=document.getElementById('nu-nombre').value.trim();
+  const a=document.getElementById('nu-apellido').value.trim();
+  const v=document.getElementById('nu-vivienda').value.trim();
+  if(!n||!v){ alert('Completa al menos nombre y vivienda.'); return; }
+  usuarios.push({id:Date.now(), nombre:n+' '+a, vivienda:v, estado:'pendiente', saldo:0, meses_deuda:0});
+  renderUsuarios(usuarios);
+  closeModal('modal-nuevo-usuario');
+  ['nu-nombre','nu-apellido','nu-vivienda','nu-tel','nu-pin'].forEach(id=>document.getElementById(id).value='');
+  poblarSelectUsuarios();
+}
+
+function poblarSelectUsuarios(){
+  const sel=document.getElementById('pago-usuario');
+  sel.innerHTML='<option>Seleccionar...</option>'+usuarios.map(u=>`<option>${u.nombre}</option>`).join('');
+}
+
+function renderPagos(lista){
+  document.getElementById('tabla-pagos').innerHTML=lista.map(p=>`
+    <tr>
+      <td><div class="user-cell"><div class="avatar" style="width:24px;height:24px;font-size:9px">${initials(p.usuario)}</div>${p.usuario}</div></td>
+      <td>$${p.monto.toLocaleString()}</td>
+      <td><span class="status ${p.estado}">${p.estado}</span></td>
+    </tr>`).join('');
+}
+
+function filterPagos(estado, el){
+  filtroActual=estado;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderPagos(estado==='todos'?pagos:pagos.filter(p=>p.estado===estado));
+}
+
+function registrarPago(){
+  const u=document.getElementById('pago-usuario').value;
+  const m=parseInt(document.getElementById('pago-monto').value)||12000;
+  if(u==='Seleccionar...'){ alert('Selecciona un usuario.'); return; }
+  const fecha=new Date().toLocaleDateString('es-CO');
+  pagos.unshift({id:Date.now(), usuario:u, monto:m, fecha, estado:'pagado', tipo:document.getElementById('pago-tipo').value});
+  const fid='FAC-'+(facturas.length+1).toString().padStart(3,'0');
+  facturas.unshift({id:fid, usuario:u, monto:m, mes:'Junio 2025', fecha});
+  renderPagos(filtroActual==='todos'?pagos:pagos.filter(p=>p.estado===filtroActual));
+  renderFacturas(facturas);
+  verFactura(u, m, fid, fecha);
+}
+
+function qrSvg(text){
+  const cell=8; const cols=10;
+  const bits=[];
+  for(let i=0;i<cols*cols;i++) bits.push((text.charCodeAt(i%text.length)^i)%3>0?1:0);
+  let rects='';
+  bits.forEach((b,i)=>{ if(b){ const x=(i%cols)*cell; const y=Math.floor(i/cols)*cell; rects+=`<rect x="${x}" y="${y}" width="${cell}" height="${cell}" fill="#1a1a1a"/>`; }});
+  return `<svg style="display:block;margin:0 auto 8px" width="80" height="80" viewBox="0 0 ${cols*cell} ${cols*cell}" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
+}
+
+function verFactura(usuario, monto, fid, fecha){
+  const f=facturas.find(f=>f.usuario===usuario)||{id:fid||'FAC-001', mes:'Junio 2025', fecha:fecha||'01/06/2025', monto:monto||12000};
+  document.getElementById('factura-content').innerHTML=`
+    <div class="factura-header">
+      <div><div class="factura-logo">💧 Agua Transparente</div><div style="font-size:11px;color:#aaa">Junta de Acción Comunal<br>Vereda Las Bocas, Córdoba</div></div>
+      <div style="text-align:right;font-size:11px;color:#aaa"><strong style="color:#1a1a1a">${f.id}</strong><br>${f.fecha}</div>
+    </div>
+    <div class="factura-row"><span style="color:#666">Usuario</span><span>${usuario}</span></div>
+    <div class="factura-row"><span style="color:#666">Período</span><span>${f.mes}</span></div>
+    <div class="factura-row"><span style="color:#666">Servicio</span><span>Agua potable</span></div>
+    <div class="factura-total"><span>Total a pagar</span><span style="color:#185fa5;font-size:15px">$${(f.monto||12000).toLocaleString()}</span></div>
+    <div class="qr-block">${qrSvg(f.id+usuario)}<div style="font-size:11px;color:#aaa">Código QR — ${f.id}</div></div>`;
+  openModal('modal-factura');
+}
+
+function renderFacturas(lista){
+  document.getElementById('lista-facturas').innerHTML=lista.map(f=>`
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar"><i class="ti ti-file-invoice" style="font-size:14px"></i></div>
+        <div><div style="font-weight:600">${f.id}</div><div style="font-size:12px;color:#666">${f.usuario} · ${f.mes}</div></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:600;color:#185fa5">$${f.monto.toLocaleString()}</div>
+        <div style="font-size:11px;color:#aaa">${f.fecha}</div>
+      </div>
+      <button class="btn sm" onclick="verFactura('${f.usuario}',${f.monto},'${f.id}','${f.fecha}')"><i class="ti ti-qrcode"></i> Ver QR</button>
+    </div>`).join('');
+}
+
+function filterFacturas(q){
+  renderFacturas(facturas.filter(f=>f.usuario.toLowerCase().includes(q.toLowerCase())||f.id.toLowerCase().includes(q.toLowerCase())));
+}
+
+function renderMorosos(){
+  const m=usuarios.filter(u=>u.meses_deuda>=2);
+  document.getElementById('tabla-morosos-wrap').innerHTML=`
+    <div class="card" style="padding:0">
+    <table>
+      <thead><tr>
+        <th style="padding:12px 16px">Usuario</th>
+        <th style="padding:12px 16px">Vivienda</th>
+        <th style="padding:12px 16px">Meses de deuda</th>
+        <th style="padding:12px 16px">Deuda total</th>
+        <th style="padding:12px 16px">Acción</th>
+      </tr></thead>
+      <tbody>${m.map(u=>`
+        <tr>
+          <td style="padding:10px 16px"><div class="user-cell"><div class="avatar">${initials(u.nombre)}</div>${u.nombre}</div></td>
+          <td style="padding:10px 16px;color:#666">${u.vivienda}</td>
+          <td style="padding:10px 16px"><span class="status moroso">${u.meses_deuda} mes${u.meses_deuda>1?'es':''}</span></td>
+          <td style="padding:10px 16px;color:#a32d2d;font-weight:600">$${u.saldo.toLocaleString()}</td>
+          <td style="padding:10px 16px"><button class="btn sm" onclick="alert('Notificación enviada a ${u.nombre}')"><i class="ti ti-bell"></i> Notificar</button></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+function initChart(){
+  const meses=['Ene','Feb','Mar','Abr','May','Jun'];
+  const vals=[480000,504000,516000,528000,552000,576000];
+  const max=Math.max(...vals);
+  const container=document.getElementById('chart-bars');
+  container.innerHTML=meses.map((m,i)=>`
+    <div class="bar-col">
+      <div class="bar-val">$${(vals[i]/1000).toFixed(0)}k</div>
+      <div class="bar" style="height:${Math.round((vals[i]/max)*80)}px" title="${m}: $${vals[i].toLocaleString()}"></div>
+      <div class="bar-label">${m}</div>
+    </div>`).join('');
+}
+
+function initDashPagos(){
+  document.getElementById('dash-pagos').innerHTML=pagos.slice(0,5).map(p=>`
+    <tr>
+      <td><div class="user-cell"><div class="avatar" style="width:24px;height:24px;font-size:9px">${initials(p.usuario)}</div>${p.usuario}</div></td>
+      <td>$${p.monto.toLocaleString()}</td>
+      <td>${p.fecha}</td>
+      <td><span class="status ${p.estado}">${p.estado}</span></td>
+    </tr>`).join('');
+}
+
+let isOffline=false;
+function toggleOffline(){
+  isOffline=!isOffline;
+  document.getElementById('offline-bar').style.display=isOffline?'flex':'none';
+  document.getElementById('offline-indicator').style.background=isOffline?'#854f0b':'#3b6d11';
+  document.getElementById('sync-label').textContent=isOffline?'Offline':'Sincronizado';
+  document.getElementById('wifi-btn').textContent=isOffline?'Volver Online':'Simular Offline';
+}
+
+renderUsuarios(usuarios);
+poblarSelectUsuarios();
+renderPagos(pagos);
+renderFacturas(facturas);
+renderMorosos();
+initChart();
+initDashPagos();
+</script>
+</body>
+</html>
